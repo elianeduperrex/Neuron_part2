@@ -1,22 +1,24 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-
+#include <cassert>
 #include "neuron.hpp"
 #include "constant.hpp"
 
 using namespace std;
 
-
+//initialise the time interval and the external input current
 void initialiser(double& a, double& b, double& current);
+//test the connection between 2 neurons
+bool testConnection();
+//run the test
+void runTest();
 
 int main() {
-	//vector<Neuron> neurons;
-	Neuron neuron1, neuron2;
 	double  simTime(T_SART);
 	double input_current_ext(0.0);
 	double a, b;
-	
+	Neuron neuron1, neuron2;
 	//file where the data would be collected
 	ofstream entree_donne("times_spike");
 
@@ -32,27 +34,24 @@ int main() {
 			input_current = input_current_ext;
 		 } else { 
 		 	input_current = 0.0;
-		 }
-			//for (auto neuron : neurons) {
-		
-			//to store the membrane potential
-			neuron1.potentialEnter(entree_donne);
-			if (neuron1.update(H, input_current, false)) {
-				cout << "Spike  occurs at " << simTime << " ms" << endl;
-			}
-			
-			//cr;er une connexion entre les deux et par le biais d-un bool ou chercher dans vector dernier temps de spike 
-
-			if (neuron2.update(H, 0.0, neuron1.getRefractoryState())) {
-				cout << " at 2 " << simTime << endl;
-			}
-		
+		 }	
+		//to store the membrane potential
+		neuron1.potentialEnter(entree_donne);
+		if (neuron1.update(H, input_current, false)) {
+			cout << "Spike for neuron 1 occured at " << simTime << " ms" << endl;
+		} 
+		if (neuron2.update(H, 0.0, neuron1.getRefractoryState())) {
+			cout << "Spike for neuron 2 occured at " << simTime << " ms" << endl;
+		}
 		simTime = simTime + N*H;
-
 	}
 	//to store the spike times
+	entree_donne << "Spike Time for neuron 1";
 	neuron1.spikeTimeEnter(entree_donne);
+	entree_donne << "Spike Time for neuron 2 ";
+	neuron2.spikeTimeEnter(entree_donne);
 	entree_donne.close();
+	runTest();
 	return 0;
 }
 
@@ -63,13 +62,31 @@ void initialiser(double& a, double& b, double& input_current_ext) {
 		cout << "Choose a time interval: (a < b), a and b must be positive numbers ";
 		cin >> a;
 		cin >> b;
+		
 	} while (a >= b or a < 0.0 or b < 0.0) ;
-	
 	cout << "[a,b] = [" << a << ", " << b << "]" << endl;
 }
 
-/*bool testConnexion(const Neuron& neur, const Neuron& neuron1) {
-	bool result(false);
-	
-	return result;
-}*/
+bool testConnection () {
+	Neuron neur;
+	bool result(false) ;
+	double current(0.0);
+	bool receivedSpike(true);
+	//creation of a neuron and give it that a neuron connected to it spiked
+	//at initialisation the membrane potential is at 0.0 -> the potential varies only with J 
+	(neur.update(H, current, receivedSpike)) ;
+		if (neur.getMembranePotential() == J) {
+			result  = true ;
+		}
+	return result ;
+}
+
+void runTest() {
+	cout << "Connection test is ";
+	if (testConnection()) {
+			cout << " passed ";
+		} else {
+			cout << " failed ";
+		}	
+	cout << endl;
+}
