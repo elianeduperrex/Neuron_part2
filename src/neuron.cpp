@@ -1,7 +1,7 @@
 #include "neuron.hpp"
  #include <iostream>
  #include <cassert>
-#include "constant.hpp"
+
 
 //when there hasn't been any spike, the neuron cannot be refractory
 Neuron::Neuron() : membrane_potential_(0.0), clock_(0.0), isRefract_(false) {}
@@ -14,14 +14,21 @@ bool Neuron::update(const double& t, const double& input_current, bool spike) {
 	assert(t > 0.0);
 	const double T_STOP_ = clock_ + t;
 	while (clock_ < T_STOP_) {
-		if (membrane_potential_ > V_threshold) {
+		if (membrane_potential_ >= V_threshold) {
 			addSpikeTime(clock_);
 			hasSpike = true;	
 			isRefract_ = true;
 		}
-		isRefractory(clock_);
+		isRefractory(clock_); 
 		if (!isRefract_) {
 			membrane_potential_ = exp(-H/TAU)*membrane_potential_ + input_current*R*(1-exp(-H/TAU));
+			if (timeDelay.size() != 0) {
+				for (size_t i(0); i < timeDelay.size(); ++i) {
+					if(abs(clock_ -timeDelay[i][0]) < 0.00001) {
+						receive(timeDelay[i][1]);
+					}
+				}
+			}
 			if (spike) {
 				receive(J);
 			}
@@ -61,6 +68,14 @@ bool Neuron::getRefractoryState() const {
 	return isRefract_;
 }
 
+Index Neuron::getIndex() const {
+	return index;
+}
+
+double Neuron::getClock() const {
+	return clock_;
+}
+
 //add a new spike
 void Neuron::addSpikeTime(const double& t) {
 	times_.push_back(t);
@@ -73,7 +88,7 @@ void Neuron::spikeTimeEnter(std::ofstream& file) const {
 		std::cerr << "Error ";
 	} else {
 		file << "Spike time : " << std::endl;
-		for (int i(0); i < times_.size(); ++i) {
+		for (size_t i(0); i < times_.size(); ++i) {
 			file << times_[i] << std::endl;
 		}
 	}		
@@ -94,4 +109,9 @@ void Neuron::setMembranePotential(const double& memb) {
 
 void Neuron::receive(const double& j) {
 	membrane_potential_ += j;
+}
+
+void Neuron::receive(const double& j, const double& t) {
+	assert(t != 0);
+	timeDelay.push_back({t, j});
 }

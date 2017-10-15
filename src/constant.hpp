@@ -21,9 +21,15 @@ const double R = (TAU/C);
 //potential threshold
 const double V_threshold = 20.0;
 //resset potential
-const double V_RESET = 10.0;
+const double V_RESET = 0.0;
 
 //amplitude entre v?thr et vreset
 const double J = 1.1; //mV //moitier u temps refractory (0.1)
+
+//delay
+const double D = 4.0;
+
+//for tab index
+typedef unsigned int Index;
 
 #endif

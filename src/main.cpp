@@ -4,7 +4,7 @@
 #include <cassert>
 #include "neuron.hpp"
 #include "constant.hpp"
-
+#include "network.hpp"
 using namespace std;
 
 //initialise the time interval and the external input current
@@ -18,7 +18,7 @@ int main() {
 	double  simTime(T_SART);
 	double input_current_ext(0.0);
 	double a, b;
-	Neuron neuron1, neuron2;
+	Neuron neuron1, neuron2,neuron3;
 	//file where the data would be collected
 	ofstream entree_donne("times_spike");
 
@@ -28,6 +28,30 @@ int main() {
 	
 	double input_current(0.0);
 	//run simulation
+	cout << " j ";
+	vector<Neuron> neurons;
+	cout << " ne ";
+	cout << neuron1.getMembranePotential();
+	neurons.push_back((neuron1));
+	neurons.push_back((neuron2));
+	neurons.push_back(neuron3);
+	vector<vector<Index> > connexion(neurons.size());
+	connexion[0].push_back(1);
+	connexion[1].push_back(0);
+	connexion[0].push_back(2);
+	connexion[2].push_back(0);
+	assert(connexion[1].size() == 1);
+	/*for (auto lign : connexion) {
+		cout << "lign " ;
+		for (auto el : lign) {
+			cout << " el " << el << " ";
+		}
+	}*/
+	/*connexion[0].push_back(1);
+	connexion[1].push_back(0);*/
+	
+	assert(connexion.size() != 0);
+	Network networkNeuron(neurons, connexion);
 	while (simTime <= T_STOP) {
 		
 		if (simTime >= a and simTime < b) {
@@ -35,14 +59,15 @@ int main() {
 		 } else { 
 		 	input_current = 0.0;
 		 }	
+		networkNeuron.update(H, input_current, false);
 		//to store the membrane potential
 		neuron1.potentialEnter(entree_donne);
-		if (neuron1.update(H, input_current, false)) {
+		/*if (neuron1.update(H, input_current, false)) {
 			cout << "Spike for neuron 1 occured at " << simTime << " ms" << endl;
 		} 
-		if (neuron2.update(H, 0.0, neuron1.getRefractoryState())) {
+		if (neuron2.update(H, input_current, neuron1.getRefractoryState())) {
 			cout << "Spike for neuron 2 occured at " << simTime << " ms" << endl;
-		}
+		}*/
 		simTime = simTime + N*H;
 	}
 	//to store the spike times
